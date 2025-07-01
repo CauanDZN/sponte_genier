@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify
 from zeep import Client
 from zeep.transports import Transport
-import requests
 
 app = Flask(__name__)
 
@@ -34,13 +33,53 @@ def buscar_aluno():
 
             if resposta:
                 for aluno in resposta:
-                    resultados.append({
+                    responsaveis = []
+                    r_data = getattr(aluno, "Responsaveis", [])
+                    if isinstance(r_data, list):
+                        for r in r_data:
+                            responsaveis.append({
+                                "ResponsavelID": getattr(r, "ResponsavelID", None),
+                                "Nome": getattr(r, "Nome", None),
+                                "Parentesco": getattr(r, "Parentesco", None)
+                            })
+
+                    resultado = {
                         "sede": nome_sede,
-                        "nome": aluno.Nome,
-                        "cpf": aluno.CPF,
-                        "turma_atual": aluno.TurrmaAtual,
-                        "nascimento": aluno.DataNascimento.strftime("%Y-%m-%d") if aluno.DataNascimento else None
-                    })
+                        "OperacaoRealizada": getattr(aluno, "OperacaoRealizada", None),
+                        "CPF": getattr(aluno, "CPF", None),
+                        "RG": getattr(aluno, "RG", None),
+                        "ResponsavelFinanceiroID": getattr(aluno, "ResponsavelFinanceiroID", None),
+                        "AlunoID": getattr(aluno, "AlunoID", None),
+                        "Nome": getattr(aluno, "Nome", None),
+                        "Midia": getattr(aluno, "Midia", None),
+                        "DataNascimento": getattr(aluno, "DataNascimento", None),
+                        "CEP": getattr(aluno, "CEP", None),
+                        "Endereco": getattr(aluno, "Endereco", None),
+                        "NumeroEndereco": getattr(aluno, "NumeroEndereco", None),
+                        "ResponsavelDidaticoID": getattr(aluno, "ResponsavelDidaticoID", None),
+                        "Email": getattr(aluno, "Email", None),
+                        "DataCadastro": getattr(aluno, "DataCadastro", None),
+                        "NumeroMatricula": getattr(aluno, "NumeroMatricula", None),
+                        "RA": getattr(aluno, "RA", None),
+                        "LoginPortal": getattr(aluno, "LoginPortal", None),
+                        "SenhaPortal": getattr(aluno, "SenhaPortal", None),
+                        "TurmaAtual": getattr(aluno, "TurmaAtual", None),
+                        "Responsaveis": responsaveis,
+                        "Observacao": getattr(aluno, "Observacao", None),
+                        "Telefone": getattr(aluno, "Telefone", None),
+                        "Cidade": getattr(aluno, "Cidade", None),
+                        "Bairro": getattr(aluno, "Bairro", None),
+                        "CidadeNatal": getattr(aluno, "CidadeNatal", None),
+                        "Celular": getattr(aluno, "Celular", None),
+                        "Genero": getattr(aluno, "Genero", None),
+                        "Situacao": getattr(aluno, "Situacao", None),
+                        "Inadimplente": getattr(aluno, "Inadimplente", None),
+                        "NomeOrigem": getattr(aluno, "NomeOrigem", None),
+                        "OrigemID": getattr(aluno, "OrigemID", None),
+                        "CursoInteresse": getattr(aluno, "CursoInteresse", "").split(";") if getattr(aluno, "CursoInteresse", "") else []
+                    }
+
+                    resultados.append(resultado)
 
         except Exception as e:
             resultados.append({
@@ -54,4 +93,4 @@ def buscar_aluno():
     return jsonify(resultados)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5050)
