@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    container_name: sponte_genier
     ports:
       - "5050:5050"
     restart: unless-stopped
