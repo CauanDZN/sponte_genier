@@ -1,11 +1,13 @@
+import os
+import time
 from flask import Flask, request, jsonify
 from zeep import Client
 from zeep.transports import Transport
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
-app = Flask(__name__)
-
-wsdl = 'https://api.sponteeducacional.net.br/WSAPIEdu.asmx?WSDL'
-client = Client(wsdl=wsdl, transport=Transport(timeout=10))
+WSDL_URL = 'https://api.sponteeducacional.net.br/WSAPIEdu.asmx?WSDL'
+WSDL_LOCAL_FILE = 'WSAPIEdu.wsdl'
 
 sedes = {
     "Aldeota": {"codigo": "72546", "token": "QZUSqqgsLA63"},
@@ -13,10 +15,41 @@ sedes = {
     "Bezerra": {"codigo": "488365", "token": ""},
 }
 
+app = Flask(__name__)
+
+def baixar_wsdl(url, arquivo_saida):
+    if os.path.exists(arquivo_saida):
+        print(f'{arquivo_saida} já existe. Pulando download.')
+        return
+
+    print('Baixando WSDL com Selenium...')
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+
+    driver = webdriver.Chrome(options=chrome_options)
+
+    try:
+        driver.get(url)
+        time.sleep(5)  # espera carregar a página
+        wsdl_element = driver.find_element('tag name', 'pre')
+        wsdl_text = wsdl_element.text
+
+        with open(arquivo_saida, 'w', encoding='utf-8') as f:
+            f.write(wsdl_text)
+        print(f'WSDL salvo em {arquivo_saida}')
+    finally:
+        driver.quit()
+
+print('Iniciando aplicação...')
+baixar_wsdl(WSDL_URL, WSDL_LOCAL_FILE)
+
+client = Client(wsdl=WSDL_LOCAL_FILE, transport=Transport(timeout=10))
+
 @app.route('/buscar-aluno', methods=['GET'])
 def buscar_aluno():
     cpf = request.args.get('cpf', '').strip()
-
     if not cpf:
         return jsonify({"erro": "CPF é obrigatório"}), 400
 
