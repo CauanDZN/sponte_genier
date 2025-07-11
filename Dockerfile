@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     unzip \
     curl \
-    gnupg \
+    sudo \
     libnss3 \
     libgconf-2-4 \
     libatk1.0-0 \
@@ -24,21 +24,19 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && apt-get install -y google-chrome-stable
+RUN wget https://storage.googleapis.com/chrome-for-testing-public/137.0.7127.2/linux64/chrome-linux64.zip && \
+    unzip chrome-linux64.zip && \
+    mv chrome-linux64 /opt/chrome && \
+    ln -sf /opt/chrome/chrome /usr/bin/google-chrome && \
+    rm chrome-linux64.zip
 
-RUN CHROME_VERSION=$(google-chrome --version | grep -oP '\d+') && \
-    echo "Chrome version: $CHROME_VERSION" && \
-    CHROME_DRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION) && \
-    echo "ChromeDriver version: $CHROME_DRIVER_VERSION" && \
-    wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/${CHROME_DRIVER_VERSION}/chromedriver_linux64.zip && \
-    unzip /tmp/chromedriver.zip -d /usr/local/bin/ && \
-    rm /tmp/chromedriver.zip && \
-    chmod +x /usr/local/bin/chromedriver
+RUN wget https://storage.googleapis.com/chrome-for-testing-public/137.0.7127.2/linux64/chromedriver-linux64.zip && \
+    unzip chromedriver-linux64.zip && \
+    mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver && \
+    chmod +x /usr/local/bin/chromedriver && \
+    rm -rf chromedriver-linux64.zip chromedriver-linux64
 
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
