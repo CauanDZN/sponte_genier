@@ -5,6 +5,7 @@ from zeep import Client
 from zeep.transports import Transport
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
 WSDL_URL = 'https://api.sponteeducacional.net.br/WSAPIEdu.asmx?WSDL'
 WSDL_LOCAL_FILE = 'WSAPIEdu.wsdl'
@@ -32,12 +33,14 @@ def baixar_wsdl(url, arquivo_saida):
 
     try:
         driver.get(url)
-        time.sleep(5)  # espera carregar a página
-        wsdl_element = driver.find_element('tag name', 'pre')
+
+        wait = WebDriverWait(driver, 10)
+        wsdl_element = wait.until(EC.presence_of_element_located((By.TAG_NAME, "pre")))
         wsdl_text = wsdl_element.text
 
         with open(arquivo_saida, 'w', encoding='utf-8') as f:
             f.write(wsdl_text)
+
         print(f'WSDL salvo em {arquivo_saida}')
     finally:
         driver.quit()
